@@ -1,1 +1,249 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#f4f6f3">
+	<title>Entrada Pro · Gestão de evento</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+	<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+	<style>
+		:root { color-scheme: light; --ink:#17231f; --muted:#78827d; --line:#e7ebe7; --paper:#fff; --canvas:#f4f6f3; --forest:#183c31; --green:#2e8b62; --lime:#d8f26a; --coral:#e87356; --red:#cb554d; --shadow:0 12px 36px rgba(24,43,34,.08); }
+		* { box-sizing:border-box; }
+		body { margin:0; background:var(--canvas); color:var(--ink); font:14px/1.45 'DM Sans',sans-serif; }
+		button,input,select { font:inherit; } button { cursor:pointer; }
+		.app { display:grid; grid-template-columns:238px minmax(0,1fr); min-height:100vh; }
+		.sidebar { position:sticky; top:0; display:flex; flex-direction:column; height:100vh; padding:28px 16px 18px; color:#eef5f0; background:var(--forest); }
+		.brand { display:flex; align-items:center; gap:11px; padding:0 12px 30px; color:white; font:700 19px 'Space Grotesk',sans-serif; }
+		.brand-mark { display:grid; place-items:center; width:32px; height:32px; border-radius:10px; color:var(--forest); background:var(--lime); font:700 17px 'Space Grotesk',sans-serif; }
+		.brand small { display:block; margin-top:1px; color:#a8b8af; font:500 9px 'DM Sans',sans-serif; letter-spacing:1.4px; }
+		.event-label { padding:0 12px; margin:0 0 8px; color:#93a79b; font-size:10px; font-weight:700; letter-spacing:1.3px; text-transform:uppercase; }
+		.event-switch { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; margin-bottom:26px; padding:11px 12px; color:#edf4ef; text-align:left; border:1px solid #426154; border-radius:8px; background:#23483b; }
+		.event-switch strong { display:block; overflow:hidden; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+		.event-switch span { display:block; margin-top:3px; color:#a8b8af; font-size:10px; }
+		.nav { display:grid; gap:5px; }
+		.nav button { display:flex; align-items:center; gap:12px; width:100%; padding:11px 12px; color:#bdcbc2; text-align:left; border:0; border-radius:7px; background:transparent; transition:background .18s,color .18s; }
+		.nav button:hover { color:white; background:#24483c; } .nav button.active { color:#18231e; background:var(--lime); font-weight:700; }
+		.nav-icon { display:inline-grid; place-items:center; width:18px; font-size:17px; line-height:1; }
+		.nav-count { margin-left:auto; padding:2px 7px; color:#d9e3dc; border-radius:10px; background:#315647; font-size:10px; }
+		.sidebar-bottom { margin-top:auto; }
+		.capacity-mini { margin:0 4px 18px; padding:14px 12px; border:1px solid #426154; border-radius:8px; background:#204438; }
+		.capacity-mini-head { display:flex; justify-content:space-between; margin-bottom:10px; color:#c7d4cc; font-size:11px; } .capacity-mini-head strong { color:white; }
+		.track { height:6px; overflow:hidden; border-radius:5px; background:rgba(255,255,255,.14); }
+		.track>span { display:block; height:100%; border-radius:inherit; background:var(--lime); transition:width .3s ease; }
+		.sidebar-foot { display:flex; align-items:center; gap:9px; padding:13px 9px 0; border-top:1px solid #365648; }
+		.avatar { display:grid; place-items:center; flex:0 0 31px; width:31px; height:31px; color:#21382e; border-radius:50%; background:#d1e2d2; font-size:10px; font-weight:700; }
+		.sidebar-foot strong { display:block; color:white; font-size:11px; } .sidebar-foot small { color:#a6b7ad; font-size:10px; }
+		main { min-width:0; padding:30px clamp(20px,4vw,56px) 48px; }
+		.topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; max-width:1200px; margin:0 auto 31px; }
+		.crumb { color:var(--muted); font-size:12px; } .top-actions { display:flex; align-items:center; gap:10px; } .date-chip { color:#77817c; font-size:12px; }
+		.button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:39px; padding:0 14px; color:var(--ink); border:1px solid var(--line); border-radius:7px; background:white; font-weight:600; transition:transform .16s,border-color .16s,background .16s; }
+		.button:hover { border-color:#b5c1ba; transform:translateY(-1px); } .button.primary { color:#f8fff9; border-color:var(--forest); background:var(--forest); } .button.primary:hover { background:#24513f; }
+		.button.lime { color:var(--ink); border-color:var(--lime); background:var(--lime); } .button.danger { color:var(--red); border-color:#f0d5d1; background:#fff8f7; }
+		.button.small { min-height:32px; padding:0 10px; font-size:12px; } .button.icon { width:36px; min-height:36px; padding:0; font-size:17px; }
+		.content { max-width:1200px; margin:auto; animation:rise .38s ease both; }
+		@keyframes rise { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+		.page-heading { display:flex; align-items:end; justify-content:space-between; gap:18px; margin-bottom:23px; }
+		h1,h2,h3,p { margin-top:0; } h1 { margin-bottom:5px; font:600 30px/1.12 'Space Grotesk',sans-serif; }
+		.subtitle { margin-bottom:0; color:var(--muted); font-size:13px; } .eyebrow { margin-bottom:8px; color:var(--green); font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+		.metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; margin-bottom:17px; }
+		.metric { min-height:139px; padding:17px 18px; border:1px solid var(--line); border-radius:8px; background:var(--paper); }
+		.metric-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:17px; color:#68746d; font-size:11px; font-weight:600; }
+		.metric-symbol { display:grid; place-items:center; width:29px; height:29px; color:var(--green); border-radius:8px; background:#e9f3ec; font-size:15px; }
+		.metric strong { display:block; font:600 29px/1 'Space Grotesk',sans-serif; } .metric-foot { margin-top:9px; color:#89928d; font-size:10px; }
+		.metric-foot em { color:var(--green); font-style:normal; font-weight:700; }
+		.occupancy { background:var(--lime); border-color:var(--lime); } .occupancy .metric-symbol { color:var(--forest); background:rgba(255,255,255,.5); }
+		.occupancy .metric-foot { color:#57632a; } .occupancy .track { margin-top:15px; background:rgba(35,53,24,.17); } .occupancy .track>span { background:var(--forest); }
+		.dashboard-grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(270px,.8fr); gap:15px; margin-bottom:17px; }
+		.panel { min-width:0; border:1px solid var(--line); border-radius:8px; background:var(--paper); }
+		.panel-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:17px 19px; border-bottom:1px solid var(--line); }
+		.panel-head h2 { margin:0; font:600 15px 'Space Grotesk',sans-serif; } .panel-head p { margin:4px 0 0; color:var(--muted); font-size:11px; }
+		.panel-body { padding:17px 19px; } .activity-list { display:grid; }
+		.activity-row { display:flex; align-items:center; gap:11px; padding:12px 0; border-bottom:1px solid #eff1ef; }
+		.activity-row:first-child { padding-top:0; } .activity-row:last-child { padding-bottom:0; border:0; }
+		.activity-avatar { display:grid; place-items:center; flex:0 0 34px; width:34px; height:34px; color:var(--green); border-radius:50%; background:#eaf3ed; font-size:10px; font-weight:700; }
+		.activity-meta { min-width:0; flex:1; } .activity-meta strong { display:block; overflow:hidden; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+		.activity-meta small { display:block; margin-top:2px; color:#87918b; font-size:10px; } .activity-time { color:#859089; font-size:10px; white-space:nowrap; }
+		.quick-actions { display:grid; gap:9px; }
+		.quick-action { display:flex; align-items:center; gap:11px; width:100%; padding:12px; text-align:left; border:1px solid var(--line); border-radius:7px; background:#fff; transition:border .15s,background .15s; }
+		.quick-action:hover { border-color:#9eafa4; background:#f9fbf9; } .quick-action .metric-symbol { flex:0 0 34px; width:34px; height:34px; }
+		.quick-action strong { display:block; font-size:12px; } .quick-action small { display:block; margin-top:2px; color:var(--muted); font-size:10px; }
+		.table-panel { overflow:hidden; } .table-tools { display:flex; align-items:center; gap:8px; }
+		.search { width:min(220px,36vw); min-height:34px; padding:0 10px; color:var(--ink); border:1px solid var(--line); border-radius:6px; outline:none; background:#fff; font-size:11px; }
+		.search:focus,.field input:focus,.field select:focus { border-color:#72a88b; box-shadow:0 0 0 3px rgba(46,139,98,.1); }
+		.table-scroll { overflow:auto; } table { width:100%; border-collapse:collapse; text-align:left; white-space:nowrap; }
+		th { padding:11px 18px; color:#849088; background:#fafbfa; font-size:9px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; }
+		td { padding:12px 18px; border-top:1px solid #eff1ef; font-size:11px; }
+		.person { display:flex; align-items:center; gap:9px; } .person .activity-avatar { width:30px; height:30px; flex-basis:30px; }
+		.person strong { display:block; font-size:11px; } .person small { display:block; margin-top:2px; color:var(--muted); font-size:10px; }
+		.status { display:inline-flex; align-items:center; gap:5px; padding:4px 8px; color:#68746d; border-radius:20px; background:#f0f2f0; font-size:10px; font-weight:600; }
+		.status:before { width:5px; height:5px; border-radius:50%; background:#9aa49e; content:''; } .status.arrived { color:#26724f; background:#e7f3eb; } .status.arrived:before { background:var(--green); }
+		.status.rejected { color:#a84d47; background:#fff0ee; } .status.rejected:before { background:var(--red); }
+		.row-actions { display:flex; justify-content:end; gap:5px; } .text-button { padding:4px 6px; color:var(--green); border:0; background:transparent; font-size:11px; font-weight:700; }
+		.text-button:hover { text-decoration:underline; } .empty { padding:40px 20px; color:var(--muted); text-align:center; } .empty strong { display:block; margin-bottom:5px; color:var(--ink); }
+		.section-note { color:var(--muted); font-size:11px; }
+		.scan-layout { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr); gap:16px; }
+		.scanner-frame { display:grid; place-items:center; min-height:330px; margin:18px; overflow:hidden; border:1px dashed #bdc9c0; border-radius:8px; background:#f6f8f6; }
+		.scanner-placeholder { max-width:290px; padding:30px; text-align:center; } .scanner-icon { display:grid; place-items:center; width:58px; height:58px; margin:0 auto 14px; color:var(--green); border-radius:16px; background:#e5f1e8; font-size:25px; }
+		.scanner-placeholder strong { display:block; margin-bottom:6px; font:600 16px 'Space Grotesk',sans-serif; } .scanner-placeholder p { margin-bottom:16px; color:var(--muted); font-size:12px; }
+		#reader { width:min(100%,480px); border:0!important; } #reader video { border-radius:7px; }
+		#reader__dashboard_section_csr button { margin:8px; padding:8px 12px; border:1px solid var(--line); border-radius:6px; background:white; }
+		.manual-check { padding:17px 19px; border-top:1px solid var(--line); } .manual-check label { display:block; margin-bottom:8px; font-size:11px; font-weight:700; }
+		.manual-row { display:flex; gap:8px; } .manual-row input { min-width:0; flex:1; height:39px; padding:0 11px; border:1px solid var(--line); border-radius:6px; outline:none; }
+		.result-box { min-height:155px; padding:18px; border-radius:7px; background:#f5f7f5; } .result-box.success { background:#e8f4eb; } .result-box.error { background:#fff0ee; }
+		.result-box strong { display:block; margin-bottom:5px; font:600 16px 'Space Grotesk',sans-serif; } .result-box p { margin:0; color:#67736b; font-size:12px; }
+		.report-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:13px; margin-bottom:16px; }
+		.report-value { margin:15px 0 4px; font:600 28px 'Space Grotesk',sans-serif; } .report-label { color:var(--muted); font-size:11px; }
+		.modal-backdrop { position:fixed; z-index:10; inset:0; display:none; place-items:center; padding:18px; background:rgba(14,27,21,.48); backdrop-filter:blur(3px); }
+		.modal-backdrop.open { display:grid; animation:fade .18s ease both; } @keyframes fade { from { opacity:0; } to { opacity:1; } }
+		.modal { width:min(100%,510px); max-height:min(92vh,760px); overflow:auto; border-radius:10px; background:white; box-shadow:var(--shadow); animation:rise .2s ease both; }
+		.modal-head { display:flex; align-items:start; justify-content:space-between; padding:21px 23px 15px; border-bottom:1px solid var(--line); }
+		.modal-head h2 { margin:0 0 4px; font:600 19px 'Space Grotesk',sans-serif; } .modal-head p { margin:0; color:var(--muted); font-size:11px; }
+		.modal-body { padding:20px 23px 23px; } .close-button { width:32px; height:32px; color:#67736b; border:0; border-radius:6px; background:#f1f4f1; font-size:18px; }
+		.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px 12px; } .field.full { grid-column:1/-1; }
+		.field label { display:block; margin-bottom:6px; font-size:11px; font-weight:700; }
+		.field input,.field select { width:100%; height:39px; padding:0 10px; border:1px solid var(--line); border-radius:6px; outline:none; background:white; }
+		.form-actions { display:flex; justify-content:end; gap:8px; margin-top:20px; }
+		.ticket { text-align:center; } .ticket-event { margin-bottom:5px; color:var(--green); font-size:10px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; }
+		.ticket h3 { margin:0 0 4px; font:600 22px 'Space Grotesk',sans-serif; } .ticket-email { margin-bottom:18px; color:var(--muted); font-size:12px; }
+		.qr-wrap { display:grid; place-items:center; width:190px; height:190px; margin:0 auto 13px; padding:12px; border:1px solid var(--line); border-radius:9px; background:#fff; }
+		.qr-wrap img,.qr-wrap canvas { max-width:100%; } .ticket-code { margin-bottom:17px; color:var(--forest); font:600 13px 'Space Grotesk',sans-serif; letter-spacing:1.5px; }
+		.ticket-actions { display:flex; justify-content:center; gap:8px; }
+		.toast { position:fixed; z-index:20; right:22px; bottom:22px; max-width:min(380px,calc(100vw - 44px)); padding:12px 16px; color:white; border-radius:7px; background:var(--forest); box-shadow:var(--shadow); opacity:0; pointer-events:none; transform:translateY(8px); transition:.2s; }
+		.toast.show { opacity:1; transform:translateY(0); }
+		@media (max-width:920px) { .app { grid-template-columns:205px minmax(0,1fr); } main { padding:24px 22px 40px; } .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .dashboard-grid { grid-template-columns:1fr; } }
+		@media (max-width:680px) {
+			.app { display:block; } .sidebar { position:fixed; z-index:5; inset:auto 0 0; width:100%; height:auto; padding:7px 7px max(7px,env(safe-area-inset-bottom)); }
+			.brand,.event-label,.event-switch,.capacity-mini,.sidebar-foot { display:none; } .nav { grid-template-columns:repeat(4,1fr); gap:3px; }
+			.nav button { flex-direction:column; justify-content:center; gap:3px; min-height:52px; padding:5px 2px; font-size:9px; } .nav-icon { font-size:17px; } .nav-count { display:none; }
+			main { padding:20px 15px 86px; } .topbar { margin-bottom:24px; } .top-actions { gap:7px; } .date-chip { display:none; }
+			.page-heading { align-items:start; } h1 { font-size:26px; } .page-heading .button { min-height:36px; padding:0 10px; font-size:11px; }
+			.metrics { gap:9px; } .metric { min-height:125px; padding:14px; } .metric-top { margin-bottom:13px; } .metric strong { font-size:25px; }
+			.panel-head { padding:14px; } .panel-body { padding:14px; } th,td { padding-right:12px; padding-left:12px; }
+			.scan-layout { grid-template-columns:1fr; } .scanner-frame { min-height:270px; margin:12px; } .report-grid { grid-template-columns:1fr; } .search { width:135px; }
+		}
+		@media (max-width:400px) { .metrics { grid-template-columns:1fr 1fr; } .metric { padding:12px; } .metric-top { font-size:10px; } .metric-symbol { width:26px; height:26px; } .page-heading { gap:8px; } .button.primary .button-label { display:none; } .form-grid { grid-template-columns:1fr; } .field.full { grid-column:auto; } }
+	</style>
+</head>
+<body>
+	<div class="app">
+		<aside class="sidebar">
+			<div class="brand"><span class="brand-mark">E</span><span>entrada<small>GESTÃO DE EVENTOS</small></span></div>
+			<p class="event-label">Evento ativo</p>
+			<button class="event-switch" id="eventSwitch" type="button"><span><strong id="sidebarEventName">Encontro de Outono</strong><span id="sidebarEventMeta">24 OUT · 18:00</span></span><span aria-hidden="true">⌄</span></button>
+			<nav class="nav" aria-label="Navegação principal">
+				<button class="active" data-page="dashboard"><span class="nav-icon">▦</span>Visão geral</button>
+				<button data-page="participants"><span class="nav-icon">♙</span>Participantes <span class="nav-count" id="navCount">0</span></button>
+				<button data-page="checkin"><span class="nav-icon">⌗</span>Check-in</button>
+				<button data-page="reports"><span class="nav-icon">▤</span>Relatórios</button>
+			</nav>
+			<div class="sidebar-bottom"><div class="capacity-mini"><div class="capacity-mini-head"><span>Lotação</span><strong id="sideCapacity">0%</strong></div><div class="track"><span id="sideBar" style="width:0%"></span></div></div><div class="sidebar-foot"><span class="avatar">HA</span><span><strong>Hugo Almeida</strong><small>Organizador</small></span></div></div>
+		</aside>
+		<main><header class="topbar"><div class="crumb"><span>Eventos</span>　/　<strong id="crumbPage">Visão geral</strong></div><div class="top-actions"><span class="date-chip" id="todayDate"></span><button class="button primary" id="topRegister" type="button"><span aria-hidden="true">＋</span><span class="button-label">Nova inscrição</span></button></div></header><div class="content" id="content"></div></main>
+	</div>
+	<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-hidden="true"><section class="modal" id="modal"></section></div>
+	<div class="toast" id="toast" role="status" aria-live="polite"></div>
+	<script>
+		(() => {
+			const STORAGE_KEY = 'entrada-pro-v1';
+			const defaults = {
+				eventName:'Encontro de Outono', eventDate:'2026-10-24', eventTime:'18:00', capacity:180,
+				attendees:[
+					{id:'a1',name:'Beatriz Costa',email:'beatriz.costa@email.pt',phone:'912 345 678',ticket:'ENT-84K2PX',createdAt:'2026-10-14T10:22:00',checkedInAt:null},
+					{id:'a2',name:'Miguel Ferreira',email:'miguel.ferreira@email.pt',phone:'934 556 781',ticket:'ENT-29LMQ7',createdAt:'2026-10-14T11:08:00',checkedInAt:'2026-10-16T17:42:00'},
+					{id:'a3',name:'Inês Martins',email:'ines.martins@email.pt',phone:'917 224 309',ticket:'ENT-6NW3RT',createdAt:'2026-10-15T09:16:00',checkedInAt:'2026-10-16T17:56:00'},
+					{id:'a4',name:'Rafael Oliveira',email:'rafael.oliveira@email.pt',phone:'965 802 417',ticket:'ENT-5D7JXA',createdAt:'2026-10-15T14:35:00',checkedInAt:null},
+					{id:'a5',name:'Sofia Rodrigues',email:'sofia.rodrigues@email.pt',phone:'919 430 288',ticket:'ENT-3CQ8VB',createdAt:'2026-10-16T08:54:00',checkedInAt:null},
+					{id:'a6',name:'Tiago Sousa',email:'tiago.sousa@email.pt',phone:'961 785 036',ticket:'ENT-7PJ4MK',createdAt:'2026-10-16T09:31:00',checkedInAt:null}
+				]
+			};
+			let state;
+			try { state=JSON.parse(localStorage.getItem(STORAGE_KEY))||defaults; } catch { state=defaults; }
+			if (!Array.isArray(state.attendees)) state=defaults;
+			let currentPage='dashboard', scanner=null, toastTimer;
+			const content=document.getElementById('content'), byId=id=>document.getElementById(id);
+			const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+			const initials=name=>String(name||'?').split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase();
+			const checked=()=>state.attendees.filter(person=>person.checkedInAt).length;
+			const occupancy=()=>state.capacity>0?Math.min(100,Math.round(checked()/state.capacity*100)):0;
+			const save=()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));updateSidebar();};
+			const formatDate=value=>new Intl.DateTimeFormat('pt-PT',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(value));
+			const formatTime=value=>new Intl.DateTimeFormat('pt-PT',{hour:'2-digit',minute:'2-digit'}).format(new Date(value));
+			const relativeDate=value=>{const minutes=Math.max(0,Math.floor((Date.now()-new Date(value).getTime())/60000));if(minutes<1)return'agora mesmo';if(minutes<60)return`há ${minutes} min`;const hours=Math.floor(minutes/60);if(hours<24)return`há ${hours} h`;return formatDate(value);};
+			const sortedPeople=()=>[...state.attendees].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+			function updateSidebar(){byId('sidebarEventName').textContent=state.eventName;byId('sidebarEventMeta').textContent=`${formatDate(state.eventDate)} · ${state.eventTime}`;byId('navCount').textContent=state.attendees.length;byId('sideCapacity').textContent=`${occupancy()}%`;byId('sideBar').style.width=`${occupancy()}%`;}
+			function toast(message){const node=byId('toast');node.textContent=message;node.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.classList.remove('show'),2800);}
+			function setPage(page){if(scanner)stopScanner();currentPage=page;document.querySelectorAll('.nav button').forEach(button=>button.classList.toggle('active',button.dataset.page===page));byId('crumbPage').textContent=({dashboard:'Visão geral',participants:'Participantes',checkin:'Check-in',reports:'Relatórios'})[page];render();}
+			function render(){if(currentPage==='dashboard')renderDashboard();if(currentPage==='participants')renderParticipants();if(currentPage==='checkin')renderCheckin();if(currentPage==='reports')renderReports();}
+			function personRows(people){if(!people.length)return'<tr><td colspan="5"><div class="empty"><strong>Sem participantes por agora</strong>As novas inscrições vão aparecer aqui.</div></td></tr>';return people.map(person=>`<tr><td><div class="person"><span class="activity-avatar">${esc(initials(person.name))}</span><span><strong>${esc(person.name)}</strong><small>${esc(person.email)}</small></span></div></td><td><span class="status ${person.checkedInAt?'arrived':''}">${person.checkedInAt?'Presente':'Inscrito'}</span></td><td>${esc(person.ticket)}</td><td>${formatDate(person.createdAt)}</td><td><div class="row-actions"><button class="text-button" data-ticket="${esc(person.id)}" type="button">Bilhete</button>${!person.checkedInAt?`<button class="text-button" data-checkin="${esc(person.id)}" type="button">Entrada</button>`:''}</div></td></tr>`).join('');}
+			function renderDashboard(){
+				const latest=sortedPeople().slice(0,4);
+				content.innerHTML=`<div class="page-heading"><div><p class="eyebrow">Painel do evento</p><h1>Bom dia, Hugo.</h1><p class="subtitle">Aqui está o resumo do teu evento.</p></div><button class="button" id="editEvent" type="button"><span aria-hidden="true">⚙</span> Configurar evento</button></div>
+					<section class="metrics" aria-label="Resumo do evento"><article class="metric"><div class="metric-top"><span>Inscrições</span><span class="metric-symbol">♙</span></div><strong>${state.attendees.length}</strong><div class="metric-foot"><em>${state.attendees.length?'Ativas':'Sem inscrições'}</em> no evento</div></article><article class="metric"><div class="metric-top"><span>Já chegaram</span><span class="metric-symbol">✓</span></div><strong>${checked()}</strong><div class="metric-foot">Entradas validadas</div></article><article class="metric"><div class="metric-top"><span>Lugares livres</span><span class="metric-symbol">↗</span></div><strong>${Math.max(0,state.capacity-state.attendees.length)}</strong><div class="metric-foot">de ${state.capacity} lugares disponíveis</div></article><article class="metric occupancy"><div class="metric-top"><span>Lotação ocupada</span><span class="metric-symbol">◉</span></div><strong>${occupancy()}%</strong><div class="metric-foot">${checked()} de ${state.capacity} pessoas no recinto</div><div class="track"><span style="width:${occupancy()}%"></span></div></article></section>
+					<section class="dashboard-grid"><article class="panel"><div class="panel-head"><div><h2>Atividade recente</h2><p>Últimas inscrições e entradas validadas</p></div><button class="text-button" data-goto="participants" type="button">Ver participantes →</button></div><div class="panel-body"><div class="activity-list">${latest.length?latest.map(person=>`<div class="activity-row"><span class="activity-avatar">${esc(initials(person.name))}</span><div class="activity-meta"><strong>${esc(person.name)}</strong><small>${person.checkedInAt?'Entrada validada':'Inscrição confirmada'} · ${esc(person.ticket)}</small></div><span class="activity-time">${relativeDate(person.checkedInAt||person.createdAt)}</span></div>`).join(''):'<div class="empty"><strong>O evento começa aqui</strong>Cria a primeira inscrição para emitir um bilhete.</div>'}</div></div></article>
+					<article class="panel"><div class="panel-head"><div><h2>Ações rápidas</h2><p>O essencial, sempre à mão</p></div></div><div class="panel-body"><div class="quick-actions"><button class="quick-action" data-action="register" type="button"><span class="metric-symbol">＋</span><span><strong>Adicionar participante</strong><small>Criar inscrição e emitir bilhete QR</small></span></button><button class="quick-action" data-action="checkin" type="button"><span class="metric-symbol">⌗</span><span><strong>Abrir check-in</strong><small>Ler ou validar um bilhete</small></span></button><button class="quick-action" data-action="export" type="button"><span class="metric-symbol">↓</span><span><strong>Exportar relatório</strong><small>Descarregar lista em CSV</small></span></button></div></div></article></section>
+					<section class="panel table-panel"><div class="panel-head"><div><h2>Participantes recentes</h2><p>${state.attendees.length} inscritos · ${checked()} entradas validadas</p></div><button class="button small" data-goto="participants" type="button">Ver lista completa</button></div><div class="table-scroll"><table><thead><tr><th>Participante</th><th>Estado</th><th>Bilhete</th><th>Inscrição</th><th></th></tr></thead><tbody>${personRows(latest)}</tbody></table></div></section>`;
+				bindPageActions();byId('editEvent').addEventListener('click',openEventSettings);
+			}
+			function renderParticipants(){
+				content.innerHTML=`<div class="page-heading"><div><p class="eyebrow">Gestão de inscrições</p><h1>Participantes</h1><p class="subtitle">Consulta inscrições, bilhetes e estado de entrada.</p></div><button class="button primary" data-action="register" type="button">＋ Nova inscrição</button></div><section class="panel table-panel"><div class="panel-head"><div><h2>Lista de participantes</h2><p id="participantCount">${state.attendees.length} pessoas inscritas</p></div><div class="table-tools"><input class="search" id="participantSearch" type="search" placeholder="⌕  Procurar pessoa…" aria-label="Pesquisar participantes"><button class="button small" data-action="export" type="button">↓ Exportar CSV</button></div></div><div class="table-scroll"><table><thead><tr><th>Participante</th><th>Estado</th><th>Bilhete</th><th>Inscrição</th><th></th></tr></thead><tbody id="peopleTable">${personRows(sortedPeople())}</tbody></table></div></section>`;
+				bindPageActions();byId('participantSearch').addEventListener('input',event=>{const query=event.target.value.trim().toLocaleLowerCase('pt-PT');const people=sortedPeople().filter(person=>`${person.name} ${person.email} ${person.ticket}`.toLocaleLowerCase('pt-PT').includes(query));byId('peopleTable').innerHTML=personRows(people);bindTableActions();});bindTableActions();
+			}
+			function renderCheckin(){
+				content.innerHTML=`<div class="page-heading"><div><p class="eyebrow">Porta do evento</p><h1>Check-in</h1><p class="subtitle">Valida cada bilhete uma única vez e acompanha as entradas.</p></div><span class="status arrived" id="checkinCount">${checked()} presentes</span></div><section class="scan-layout"><article class="panel"><div class="panel-head"><div><h2>Leitor de bilhetes</h2><p>Aponta a câmara ao código QR do participante</p></div><span class="metric-symbol">⌗</span></div><div class="scanner-frame" id="scannerFrame"><div class="scanner-placeholder" id="scannerPlaceholder"><span class="scanner-icon">⌗</span><strong>Câmara pronta</strong><p>Usa uma câmara para ler o QR ou introduz o código do bilhete manualmente.</p><button class="button primary" id="startScanner" type="button">Ativar câmara</button></div><div id="reader" hidden></div></div><div class="manual-check"><label for="ticketInput">Validação manual</label><div class="manual-row"><input id="ticketInput" type="text" placeholder="Ex.: ENT-84K2PX" autocomplete="off"><button class="button primary" id="validateTicket" type="button">Validar</button></div></div></article><article class="panel"><div class="panel-head"><div><h2>Resultado da validação</h2><p>O estado do bilhete aparece aqui</p></div></div><div class="panel-body"><div class="result-box" id="checkinResult"><strong>À espera de um bilhete</strong><p>Depois da leitura, confirmamos se a inscrição é válida, se já foi utilizada e se ainda há lugares.</p></div><div style="margin-top:20px"><div class="panel-head" style="padding:0 0 12px;border:0"><div><h2>Entradas recentes</h2><p>Últimos participantes validados</p></div></div><div class="activity-list">${sortedPeople().filter(person=>person.checkedInAt).slice(0,5).map(person=>`<div class="activity-row"><span class="activity-avatar">${esc(initials(person.name))}</span><div class="activity-meta"><strong>${esc(person.name)}</strong><small>${esc(person.ticket)}</small></div><span class="activity-time">${formatTime(person.checkedInAt)}</span></div>`).join('')||'<p class="section-note">Ainda não foram validadas entradas.</p>'}</div></div></div></article></section>`;
+				byId('validateTicket').addEventListener('click',()=>validateTicket(byId('ticketInput').value));byId('ticketInput').addEventListener('keydown',event=>{if(event.key==='Enter')validateTicket(event.currentTarget.value);});byId('startScanner').addEventListener('click',startScanner);
+			}
+			function renderReports(){
+				const signedIn=checked(),notArrived=state.attendees.length-signedIn;
+				content.innerHTML=`<div class="page-heading"><div><p class="eyebrow">Dados do evento</p><h1>Relatórios</h1><p class="subtitle">Acompanha inscrições e presenças em tempo real.</p></div><button class="button primary" data-action="export" type="button">↓ Exportar CSV</button></div><section class="report-grid"><article class="panel"><div class="panel-body"><span class="metric-symbol">♙</span><div class="report-value">${state.attendees.length}</div><div class="report-label">Inscrições totais</div></div></article><article class="panel"><div class="panel-body"><span class="metric-symbol">✓</span><div class="report-value">${signedIn}</div><div class="report-label">Entradas confirmadas</div></div></article><article class="panel"><div class="panel-body"><span class="metric-symbol">◷</span><div class="report-value">${notArrived}</div><div class="report-label">Ainda não chegaram</div></div></article></section><section class="dashboard-grid"><article class="panel"><div class="panel-head"><div><h2>Ocupação do recinto</h2><p>Contagem atual face à lotação máxima</p></div><strong>${occupancy()}%</strong></div><div class="panel-body"><div style="display:flex;justify-content:space-between;margin-bottom:9px;font-size:12px"><span>${signedIn} presentes</span><span>${state.capacity} lugares</span></div><div class="track" style="background:#edf0ed;height:10px"><span style="width:${occupancy()}%;background:var(--green)"></span></div><p class="section-note" style="margin:12px 0 0">${Math.max(0,state.capacity-signedIn)} lugares ainda disponíveis no recinto.</p></div></article><article class="panel"><div class="panel-head"><div><h2>Evento</h2><p>Informação geral</p></div><button class="text-button" id="reportEdit" type="button">Editar</button></div><div class="panel-body"><strong>${esc(state.eventName)}</strong><p class="section-note" style="margin:6px 0 0">${formatDate(state.eventDate)} · ${esc(state.eventTime)} · Lotação ${state.capacity}</p></div></article></section><section class="panel table-panel"><div class="panel-head"><div><h2>Resumo de participantes</h2><p>Estado de cada inscrição</p></div></div><div class="table-scroll"><table><thead><tr><th>Participante</th><th>Estado</th><th>Bilhete</th><th>Inscrição</th><th></th></tr></thead><tbody>${personRows(sortedPeople())}</tbody></table></div></section>`;
+				bindPageActions();byId('reportEdit').addEventListener('click',openEventSettings);
+			}
+			function bindPageActions(){content.querySelectorAll('[data-goto]').forEach(button=>button.addEventListener('click',()=>setPage(button.dataset.goto)));content.querySelectorAll('[data-action="register"]').forEach(button=>button.addEventListener('click',openRegistration));content.querySelectorAll('[data-action="checkin"]').forEach(button=>button.addEventListener('click',()=>setPage('checkin')));content.querySelectorAll('[data-action="export"]').forEach(button=>button.addEventListener('click',exportCsv));bindTableActions();}
+			function bindTableActions(){content.querySelectorAll('[data-ticket]').forEach(button=>button.addEventListener('click',()=>openTicket(button.dataset.ticket)));content.querySelectorAll('[data-checkin]').forEach(button=>button.addEventListener('click',()=>{const person=state.attendees.find(item=>item.id===button.dataset.checkin);if(!person)return;setPage('checkin');setTimeout(()=>validateTicket(person.ticket),0);}));}
+			function showModal(html){byId('modal').innerHTML=html;byId('modalBackdrop').classList.add('open');byId('modalBackdrop').setAttribute('aria-hidden','false');byId('modal').querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',closeModal));}
+			function closeModal(){byId('modalBackdrop').classList.remove('open');byId('modalBackdrop').setAttribute('aria-hidden','true');}
+			function openRegistration(){
+				showModal(`<div class="modal-head"><div><h2>Nova inscrição</h2><p>Os dados ficam associados a um bilhete QR único.</p></div><button class="close-button" data-close type="button" aria-label="Fechar">×</button></div><div class="modal-body"><form id="registrationForm"><div class="form-grid"><div class="field full"><label for="regName">Nome completo *</label><input id="regName" name="name" required maxlength="90" placeholder="Nome do participante"></div><div class="field full"><label for="regEmail">E-mail *</label><input id="regEmail" name="email" type="email" required maxlength="120" placeholder="nome@exemplo.pt"></div><div class="field"><label for="regPhone">Telemóvel</label><input id="regPhone" name="phone" type="tel" maxlength="24" placeholder="912 345 678"></div></div><div class="form-actions"><button class="button" data-close type="button">Cancelar</button><button class="button primary" type="submit">Criar inscrição</button></div></form></div>`);
+				byId('registrationForm').addEventListener('submit',event=>{event.preventDefault();if(state.attendees.length>=state.capacity){toast('A lotação máxima de inscrições foi atingida.');return;}const data=new FormData(event.currentTarget),email=String(data.get('email')).trim();if(state.attendees.some(person=>person.email.toLowerCase()===email.toLowerCase())){toast('Já existe uma inscrição com este e-mail.');return;}const person={id:crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random()}`,name:String(data.get('name')).trim(),email,phone:String(data.get('phone')||'').trim(),ticket:generateTicket(),createdAt:new Date().toISOString(),checkedInAt:null};state.attendees.push(person);save();render();openTicket(person.id,true);});byId('regName').focus();
+			}
+			function generateTicket(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let code;do{code='ENT-'+Array.from({length:6},()=>chars[Math.floor(Math.random()*chars.length)]).join('');}while(state.attendees.some(person=>person.ticket===code));return code;}
+			function openTicket(id,created=false){
+				const person=state.attendees.find(item=>item.id===id);if(!person)return;
+				showModal(`<div class="modal-head"><div><h2>${created?'Inscrição confirmada':'Bilhete digital'}</h2><p>${created?'O bilhete já está pronto para partilhar.':'Apresenta este código à entrada do evento.'}</p></div><button class="close-button" data-close type="button" aria-label="Fechar">×</button></div><div class="modal-body ticket"><div class="ticket-event">${esc(state.eventName)}</div><h3>${esc(person.name)}</h3><p class="ticket-email">${esc(person.email)}</p><div class="qr-wrap" id="qrCode" aria-label="Código QR do bilhete"></div><div class="ticket-code">${esc(person.ticket)}</div><div class="ticket-actions"><button class="button" id="downloadTicket" type="button">↓ Descarregar QR</button><button class="button primary" data-close type="button">Concluído</button></div></div>`);
+				const qr=byId('qrCode');if(window.QRCode)new QRCode(qr,{text:person.ticket,width:164,height:164,colorDark:'#183c31',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});else qr.innerHTML=`<div style="font-size:11px;color:#77827c;text-align:center">QR indisponível<br>Bilhete ${esc(person.ticket)}</div>`;
+				byId('downloadTicket').addEventListener('click',()=>{const canvas=qr.querySelector('canvas'),image=qr.querySelector('img'),link=document.createElement('a');link.href=canvas?canvas.toDataURL('image/png'):image?.src||'';link.download=`${person.ticket}.png`;if(!link.href){toast('Não foi possível gerar a imagem do QR.');return;}link.click();});
+			}
+			function validateTicket(rawCode){
+				const code=String(rawCode||'').trim().toUpperCase();if(!code){showResult('Introduz um código','Escreve o código do bilhete para iniciar a validação.','error');return;}
+				const person=state.attendees.find(item=>item.ticket.toUpperCase()===code);if(!person){showResult('Bilhete não encontrado',`O código ${code} não corresponde a uma inscrição ativa.`,'error');toast('Bilhete inválido.');return;}
+				if(person.checkedInAt){showResult('Bilhete já utilizado',`${person.name} entrou às ${formatTime(person.checkedInAt)}. Cada bilhete permite uma única entrada.`,'error');toast('Este bilhete já foi validado.');return;}
+				if(checked()>=state.capacity){showResult('Lotação máxima atingida','Não é possível autorizar mais entradas neste evento.','error');toast('Lotação máxima atingida.');return;}
+				person.checkedInAt=new Date().toISOString();save();const count=checked();byId('checkinCount').textContent=`${count} presentes`;showResult('Entrada autorizada',`${person.name} · ${person.ticket}. ${count} ${count===1?'pessoa presente':'pessoas presentes'} no recinto.`,'success');byId('ticketInput').value='';toast(`Entrada confirmada: ${person.name}`);
+			}
+			function showResult(title,message,type){const result=byId('checkinResult');result.className=`result-box ${type}`;result.innerHTML=`<strong>${esc(title)}</strong><p>${esc(message)}</p>`;}
+			async function startScanner(){
+				if(!window.Html5Qrcode){toast('Leitor QR indisponível. Usa a validação manual.');return;}byId('scannerPlaceholder').hidden=true;byId('reader').hidden=false;scanner=new Html5Qrcode('reader');
+				try{await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:230,height:180}},decoded=>{validateTicket(decoded);if(scanner)stopScanner();},()=>{});byId('startScanner').textContent='Câmara ativa';}
+				catch{scanner=null;byId('reader').hidden=true;byId('scannerPlaceholder').hidden=false;toast('Não foi possível aceder à câmara. Verifica as permissões ou usa o código manual.');}
+			}
+			async function stopScanner(){const active=scanner;scanner=null;if(active){try{if(active.isScanning)await active.stop();}catch{}try{active.clear();}catch{}}if(currentPage==='checkin'&&byId('reader')){byId('reader').hidden=true;byId('scannerPlaceholder').hidden=false;byId('startScanner').textContent='Ativar câmara';}}
+			function openEventSettings(){
+				showModal(`<div class="modal-head"><div><h2>Configurar evento</h2><p>Atualiza os dados e a lotação máxima.</p></div><button class="close-button" data-close type="button" aria-label="Fechar">×</button></div><div class="modal-body"><form id="eventForm"><div class="form-grid"><div class="field full"><label for="eventName">Nome do evento</label><input id="eventName" name="eventName" required maxlength="80" value="${esc(state.eventName)}"></div><div class="field"><label for="eventDate">Data</label><input id="eventDate" name="eventDate" type="date" required value="${esc(state.eventDate)}"></div><div class="field"><label for="eventTime">Hora</label><input id="eventTime" name="eventTime" type="time" required value="${esc(state.eventTime)}"></div><div class="field full"><label for="eventCapacity">Lotação máxima</label><input id="eventCapacity" name="capacity" type="number" min="${Math.max(1,checked())}" max="100000" required value="${state.capacity}"></div></div><div class="form-actions"><button class="button" data-close type="button">Cancelar</button><button class="button primary" type="submit">Guardar alterações</button></div></form></div>`);
+				byId('eventForm').addEventListener('submit',event=>{event.preventDefault();const data=new FormData(event.currentTarget),capacity=Number(data.get('capacity'));if(capacity<checked()){toast('A lotação não pode ser inferior às pessoas já presentes.');return;}state.eventName=String(data.get('eventName')).trim();state.eventDate=String(data.get('eventDate'));state.eventTime=String(data.get('eventTime'));state.capacity=capacity;save();closeModal();render();toast('Evento atualizado.');});
+			}
+			function exportCsv(){
+				const rows=[['Nome','Email','Telemóvel','Código do bilhete','Estado','Data de inscrição','Data de entrada'],...sortedPeople().map(person=>[person.name,person.email,person.phone,person.ticket,person.checkedInAt?'Presente':'Inscrito',person.createdAt,person.checkedInAt||''])];
+				const csv='\ufeff'+rows.map(row=>row.map(value=>`"${String(value).replace(/"/g,'""')}"`).join(';')).join('\r\n'),url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),link=document.createElement('a');link.href=url;link.download=`entrada-pro-${state.eventDate}.csv`;link.click();URL.revokeObjectURL(url);toast('Relatório CSV descarregado.');
+			}
+			document.querySelectorAll('.nav button').forEach(button=>button.addEventListener('click',()=>setPage(button.dataset.page)));
+			byId('topRegister').addEventListener('click',openRegistration);byId('eventSwitch').addEventListener('click',openEventSettings);
+			byId('modalBackdrop').addEventListener('click',event=>{if(event.target===byId('modalBackdrop'))closeModal();});document.addEventListener('keydown',event=>{if(event.key==='Escape')closeModal();});
+			byId('todayDate').textContent=new Intl.DateTimeFormat('pt-PT',{weekday:'short',day:'numeric',month:'long'}).format(new Date());updateSidebar();render();
+		})();
+	</script>
+</body>
+</html>
 
